@@ -1,0 +1,43 @@
+{
+  "name": "@1eye/twenty-app",
+  "version": "0.1.0",
+  "license": "MIT",
+  "engines": {
+    "node": "^24.5.0 || ^26.5.1",
+    "npm": "please-use-yarn",
+    "yarn": ">=4.0.2",
+    "twenty": ">=2.53.0"
+  },
+  "keywords": [
+    "twenty-app"
+  ],
+  "packageManager": "yarn@4.18.1",
+  "scripts": {
+    "twenty": "twenty",
+    "apply:local": "ONEEYE_ENV=local twenty app apply --remote local",
+    "dev:local": "ONEEYE_ENV=local twenty app dev --remote local",
+    "create:testing": "ONEEYE_APPLICATION_ID=f7b053db-1b9a-4b91-8d23-d838bbc6e2ee ONEEYE_ENV=dev twenty app apply --create --remote testing",
+    "apply:testing": "ONEEYE_APPLICATION_ID=f7b053db-1b9a-4b91-8d23-d838bbc6e2ee ONEEYE_ENV=dev twenty app apply --remote testing",
+    "dev:testing": "ONEEYE_APPLICATION_ID=f7b053db-1b9a-4b91-8d23-d838bbc6e2ee ONEEYE_ENV=dev twenty app dev --remote testing",
+    "lint": "oxlint -c .oxlintrc.json .",
+    "lint:fix": "oxlint --fix -c .oxlintrc.json .",
+    "typecheck": "tsgo --noEmit -p tsconfig.spec.json",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:unit": "vitest run --config vitest.unit.config.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^24.7.2",
+    "@types/react": "^19.0.0",
+    "@typescript/native-preview": "^7.0.0-dev.20260116.1",
+    "oxlint": "^0.16.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "twenty-client-sdk": "2.53.0",
+    "twenty-sdk": "2.53.0",
+    "twenty-ui": "2.53.0",
+    "typescript": "^5.9.3",
+    "vite-tsconfig-paths": "^4.2.1",
+    "vitest": "^4.1.12"
+  }
+}
