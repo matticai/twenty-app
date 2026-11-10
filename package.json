@@ -1,6 +1,6 @@
 {
   "name": "@1eye/twenty-app",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "license": "MIT",
   "engines": {
     "node": "^24.5.0 || ^26.5.1",
@@ -15,6 +15,8 @@
   "scripts": {
     "twenty": "twenty",
     "apply:local": "ONEEYE_ENV=local twenty app apply --remote local",
+    "apply:prod": "ONEEYE_ENV=prod twenty app apply --remote publisher",
+    "publish:prod": "ONEEYE_ENV=prod twenty app publish",
     "dev:local": "ONEEYE_ENV=local twenty app dev --remote local",
     "create:testing": "ONEEYE_APPLICATION_ID=f7b053db-1b9a-4b91-8d23-d838bbc6e2ee ONEEYE_ENV=dev twenty app apply --create --remote testing",
     "apply:testing": "ONEEYE_APPLICATION_ID=f7b053db-1b9a-4b91-8d23-d838bbc6e2ee ONEEYE_ENV=dev twenty app apply --remote testing",
