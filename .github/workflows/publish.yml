@@ -1,71 +1,54 @@
-# Publish @1eye/twenty-app to npm. This is the only release path.
+# Twenty's own publish workflow, from .github/workflows-temp/publish.yml.
 #
-# Twenty's npm route does not take a workspace URL or an API key. CI does not
-# call https://1eye.twenty.com. After the package is on npm, claim it there
-# by hand: Settings > Developers > Apps > Claim an application.
+# Publishes the app to npm with provenance (npm trusted publishing).
+# No Twenty workspace URL and no API key. After npm shows the version, claim
+# @1eye/twenty-app in https://1eye.twenty.com at
+# Settings > Developers > Apps. Claim with GitHub checks this provenance, so
+# the repository must be public before the tag is pushed. Do not set
+# TWENTY_APP_PUBLISH_DISABLE_PROVENANCE.
+#
+# One-time setup, on the day of the release:
+# 1. On npmjs.com open the package > Settings > Trusted Publisher and register
+#    matticai/twenty-app and publish.yml. Allow direct npm publish.
+#    See https://docs.npmjs.com/trusted-publishers
+# 2. Push a version tag that matches package.json, currently v0.1.1.
+#
 # https://docs.twenty.com/developers/extend/apps/operations/publishing#publish-%E2%80%94-publish-yml
-#
-# This file stays in twenty-app. npm trusted publishing is registered against
-# this repository and this workflow filename. On npmjs.com open the package,
-# then Settings, Trusted Publisher, and register matticai/twenty-app with
-# publish.yml. Allow direct npm publish. A new registration expires if the
-# first publish does not succeed within 2 days.
-# https://docs.npmjs.com/trusted-publishers
-#
-# The repo is private, so provenance is off. npm rejects an OIDC provenance
-# bundle from a private repository, and Twenty's Claim with GitHub needs that
-# provenance. A public repository is required before that claim can succeed.
-# A tag must match package.json version (v0.1.1 publishes 0.1.1). The build
-# uses the production 1eye API because ONEEYE_APPLICATION_ID is not set.
-# ONEEYE_ENV selects that API. It is not a Twenty server credential.
 
 name: Publish
 
 on:
   push:
     tags:
-      - "v*"
+      - 'v*'
   workflow_dispatch:
-    inputs:
-      confirm:
-        description: "Type publish to release the current package.json version to npm"
-        required: true
-        type: string
 
 permissions:
   contents: read
+  # Required for npm trusted publishing (OIDC provenance).
   id-token: write
-
-concurrency:
-  group: publish
-  cancel-in-progress: false
 
 jobs:
   publish:
-    name: publish
-    if: github.event_name == 'push' || inputs.confirm == 'publish'
     runs-on: ubuntu-latest
-    timeout-minutes: 30
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v7
+      - name: Checkout
+        uses: actions/checkout@v4
 
       - name: Enable Corepack
         run: corepack enable
 
-      - name: Set up Node
-        uses: actions/setup-node@v7
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          node-version-file: .nvmrc
+          node-version-file: '.nvmrc'
           cache: yarn
-          cache-dependency-path: yarn.lock
-
-      - name: Enable Corepack for the selected Node
-        run: corepack enable
+          # No registry-url. setup-node would write an empty npm token and
+          # npm would skip the GitHub OIDC trusted publisher.
 
       - name: Update npm
-        # Trusted publishing needs npm 11.5.1 or later.
-        run: npm install -g npm@11.21.2
+        # Trusted publishing requires npm 11.5.1 or later.
+        run: npm install -g npm@latest
 
       - name: Install Twenty CLI
         run: npm install -g twenty@2.53.0
@@ -73,18 +56,6 @@ jobs:
       - name: Install dependencies
         run: yarn install --immutable
 
-      - name: Check the tag matches package.json
-        if: github.ref_type == 'tag'
-        run: |
-          version="$(node -p "require('./package.json').version")"
-          tag="${GITHUB_REF_NAME#v}"
-          if [ "$version" != "$tag" ]; then
-            echo "::error::Tag v${tag} does not match package.json version ${version}"
-            exit 1
-          fi
-
       - name: Publish to npm
-        env:
-          ONEEYE_ENV: prod
-          TWENTY_APP_PUBLISH_DISABLE_PROVENANCE: "true"
+        # Unset ONEEYE_ENV builds the production identity (https://api.1eye.ai).
         run: twenty app publish

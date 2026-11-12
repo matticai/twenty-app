@@ -1,8 +1,8 @@
-# Lint, typecheck, unit tests, and integration tests against a disposable Twenty server.
-# The jobs live in MatticAI/github-actions.
-#
-# No Twenty URL and no API key. The integration job starts its own server.
-# This does not install the app into https://1eye.twenty.com.
+# Twenty's own CI, from .github/workflows-temp/ci.yml.
+# This file does not call matticai/github-actions. The test server is started
+# here, so no Twenty URL or API key is required.
+# The default branch is master, not main. The image is pinned to the app's
+# Twenty version. "latest" is a newer server than twenty-sdk 2.53.0.
 
 name: CI
 
@@ -10,18 +10,57 @@ on:
   push:
     branches:
       - master
-  pull_request:
+  pull_request: {}
 
 permissions:
   contents: read
+
+env:
+  TWENTY_VERSION: v2.53.1
 
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  ci:
-    uses: MatticAI/github-actions/.github/workflows/reusable-twenty-ci.yml@develop
-    with:
-      twenty-image-tag: v2.53.1
-      cli-version: "2.53.0"
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Spawn Twenty test instance
+        id: twenty
+        uses: twentyhq/twenty/.github/actions/spawn-twenty-app-dev-test@main
+        with:
+          twenty-version: ${{ env.TWENTY_VERSION }}
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: yarn
+
+      - name: Install Twenty CLI
+        run: npm install -g twenty@2.53.0
+
+      - name: Install dependencies
+        run: yarn install --immutable
+
+      - name: Lint
+        run: yarn lint
+
+      - name: Typecheck
+        run: yarn typecheck
+
+      - name: Unit tests
+        run: yarn test:unit
+
+      - name: Run integration tests
+        run: yarn test
+        env:
+          TWENTY_API_URL: ${{ steps.twenty.outputs.server-url }}
+          TWENTY_API_KEY: ${{ steps.twenty.outputs.api-key }}
