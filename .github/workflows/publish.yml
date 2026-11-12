@@ -47,8 +47,9 @@ jobs:
           # npm would skip the GitHub OIDC trusted publisher.
 
       - name: Update npm
-        # Trusted publishing requires npm 11.5.1 or later.
-        run: npm install -g npm@latest
+        # Trusted publishing requires npm 11.5.1 or later. npm 12 requires
+        # Node 24.15.0 or newer, and .nvmrc is 24.5.0.
+        run: npm install -g npm@11.21.2
 
       - name: Install Twenty CLI
         run: npm install -g twenty@2.53.0
