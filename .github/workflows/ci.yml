@@ -1,5 +1,8 @@
 # Lint, typecheck, unit tests, and integration tests against a disposable Twenty server.
 # The jobs live in MatticAI/github-actions.
+#
+# No Twenty URL and no API key. The integration job starts its own server.
+# This does not install the app into https://1eye.twenty.com.
 
 name: CI
 
