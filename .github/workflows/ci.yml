@@ -1,0 +1,24 @@
+# Lint, typecheck, unit tests, and integration tests against a disposable Twenty server.
+# The jobs live in MatticAI/github-actions.
+
+name: CI
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    uses: MatticAI/github-actions/.github/workflows/reusable-twenty-ci.yml@develop
+    with:
+      twenty-image-tag: v2.53.1
+      cli-version: "2.53.0"

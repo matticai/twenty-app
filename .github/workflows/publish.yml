@@ -1,0 +1,83 @@
+# Publish @1eye/twenty-app to npm.
+#
+# This file stays in twenty-app. npm trusted publishing is registered against
+# this repository and this workflow filename.
+#
+# One-time setup: on npmjs.com open the package, then Settings, Trusted
+# Publisher, and register matticai/twenty-app with publish.yml.
+# https://docs.npmjs.com/trusted-publishers
+#
+# The repo is private, so provenance is off. npm rejects an OIDC provenance
+# bundle from a private repository. A tag must match package.json version
+# (v0.1.1 publishes 0.1.1). The build uses the production identity because
+# ONEEYE_APPLICATION_ID is not set.
+
+name: Publish
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: "Type publish to release the current package.json version to npm"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: publish
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: publish
+    if: github.event_name == 'push' || inputs.confirm == 'publish'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Set up Node
+        uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: yarn
+          cache-dependency-path: yarn.lock
+
+      - name: Enable Corepack for the selected Node
+        run: corepack enable
+
+      - name: Update npm
+        # Trusted publishing needs npm 11.5.1 or later.
+        run: npm install -g npm@11.21.2
+
+      - name: Install Twenty CLI
+        run: npm install -g twenty@2.53.0
+
+      - name: Install dependencies
+        run: yarn install --immutable
+
+      - name: Check the tag matches package.json
+        if: github.ref_type == 'tag'
+        run: |
+          version="$(node -p "require('./package.json').version")"
+          tag="${GITHUB_REF_NAME#v}"
+          if [ "$version" != "$tag" ]; then
+            echo "::error::Tag v${tag} does not match package.json version ${version}"
+            exit 1
+          fi
+
+      - name: Publish to npm
+        env:
+          ONEEYE_ENV: prod
+          TWENTY_APP_PUBLISH_DISABLE_PROVENANCE: "true"
+        run: twenty app publish
