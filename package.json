@@ -1,7 +1,11 @@
 {
   "name": "@1eye/twenty-app",
-  "version": "0.1.1",
+  "version": "0.1.4",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/matticai/twenty-app.git"
+  },
   "engines": {
     "node": "^24.5.0 || ^26.5.1",
     "npm": "please-use-yarn",
