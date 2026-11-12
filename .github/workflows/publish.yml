@@ -1,16 +1,23 @@
-# Publish @1eye/twenty-app to npm.
+# Publish @1eye/twenty-app to npm. This is the only release path.
+#
+# Twenty's npm route does not take a workspace URL or an API key. CI does not
+# call https://1eye.twenty.com. After the package is on npm, claim it there
+# by hand: Settings > Developers > Apps > Claim an application.
+# https://docs.twenty.com/developers/extend/apps/operations/publishing#publish-%E2%80%94-publish-yml
 #
 # This file stays in twenty-app. npm trusted publishing is registered against
-# this repository and this workflow filename.
-#
-# One-time setup: on npmjs.com open the package, then Settings, Trusted
-# Publisher, and register matticai/twenty-app with publish.yml.
+# this repository and this workflow filename. On npmjs.com open the package,
+# then Settings, Trusted Publisher, and register matticai/twenty-app with
+# publish.yml. Allow direct npm publish. A new registration expires if the
+# first publish does not succeed within 2 days.
 # https://docs.npmjs.com/trusted-publishers
 #
 # The repo is private, so provenance is off. npm rejects an OIDC provenance
-# bundle from a private repository. A tag must match package.json version
-# (v0.1.1 publishes 0.1.1). The build uses the production identity because
-# ONEEYE_APPLICATION_ID is not set.
+# bundle from a private repository, and Twenty's Claim with GitHub needs that
+# provenance. A public repository is required before that claim can succeed.
+# A tag must match package.json version (v0.1.1 publishes 0.1.1). The build
+# uses the production 1eye API because ONEEYE_APPLICATION_ID is not set.
+# ONEEYE_ENV selects that API. It is not a Twenty server credential.
 
 name: Publish
 
